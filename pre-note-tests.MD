@@ -81,10 +81,12 @@ diff <(plutil -p ~/Desktop/bt_before.plist) <(plutil -p ~/Desktop/bt_after.plist
 ```
 
 # Tested FSEvents monitoring 
+Installed fswatch:
 ```
 brew install fswatch
 ```
 
+Ran the following python script and connected/disconnected various bluetooth devices:
 ```
 python3 -c "
 import subprocess
