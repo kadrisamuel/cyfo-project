@@ -1,6 +1,9 @@
 # Pre-note tests
 Commands and output for confirming that key artifacts exist and are readable on my specific machine
 
+## Kadri's machine
+2025 M4 MacBook Air running the latest macOS (Tahoe 26.3.1) with encrypted iCloud (Advanced Data Protection) -> uses entitlement-based sandboxing and Unified Logging.
+
 ## Verified that Bluetooth plist exists and is readable
 ```
 defaults read /Library/Preferences/com.apple.Bluetooth
@@ -42,6 +45,10 @@ plutil -p /Library/Preferences/com.apple.Bluetooth.plist
   "SpatialSoundProfileAllowed" => true
 }
 ```
+
+I hit the "SIP" (System Integrity Protection) wall. In recent versions of macOS, the sensitive pairing data—including the history of devices, connection timestamps, and encryption keys—has been moved from the world-readable /Library/Preferences folder to a protected database in /var/db/bluetooth/.
+
+To get that data, you have to escalate your privileges and target the specific "com.apple.Bluetooth.plist" located in that protected directory.
 
 ## Tested unified log access for Bluetooth events
 ```
