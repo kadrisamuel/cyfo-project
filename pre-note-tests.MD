@@ -1,5 +1,5 @@
 # Verified that Bluetooth plist exists and is readable
-'''
+```
 defaults read /Library/Preferences/com.apple.Bluetooth
 {
     BluetoothAutoSeekKeyboard = 1;
@@ -17,10 +17,10 @@ defaults read /Library/Preferences/com.apple.Bluetooth
     move3PPLEMSToLegacyMode = 1;
     move3PPLEMSToLegacyModeSerial = 1;
 }
-'''
+```
 
 # Checked the DeviceCache
-'''
+```
 plutil -p /Library/Preferences/com.apple.Bluetooth.plist
 {
   "BluetoothAutoSeekKeyboard" => true
@@ -38,10 +38,10 @@ plutil -p /Library/Preferences/com.apple.Bluetooth.plist
   }
   "SpatialSoundProfileAllowed" => true
 }
-'''
+```
 
 # Tested unified log access for Bluetooth events
-'''
+```
 log show --predicate 'subsystem == "com.apple.bluetooth"' --last 1h --info
 Filtering the log data using "subsystem == "com.apple.bluetooth""
 Skipping debug messages, pass --debug to include.
@@ -78,12 +78,12 @@ diff <(plutil -p ~/Desktop/bt_before.plist) <(plutil -p ~/Desktop/bt_after.plist
 <       "BTAddress" => {length = 6, bytes = 0xd423b5c489a9}
 <       "RFCOMMChannel" => 2
 <     }
-'''
+```
 
 # Tested FSEvents monitoring 
-'''
+```
 brew install fswatch
-'''
+```
 
 '''
 python3 -c "
@@ -175,4 +175,4 @@ Watching for changes... (Ctrl+C to stop)
 /Library/Preferences/com.apple.powerd.charging.plist IsFile Renamed
 
 /Library/Preferences/com.apple.powerd.charging.plist IsFile AttributeModified
-'''
+```
