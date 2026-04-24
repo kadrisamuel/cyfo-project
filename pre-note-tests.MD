@@ -104,8 +104,9 @@ FA277342-7B6D-B1FF-E969-DED63443D02A|MX Master 3S|2|Random D8:B7:A1:05:97:CD|Ran
 ```
 -> JYX-S55 not visible. But I wasn't able to make it visible after reconnecting either.
 
+Also tried diffing -wal files before and after forgetting the device but didn't get anything that would seem immediately useful.
 
-
+Should reconfirm com.apple.MobileBluetooth.devices.plist files after Full Disk Access. TODO: Mention in paper that we had to grant Full Disk Access to be able to access the files.
 
 ## Tested unified log access for Bluetooth events
 ```
