@@ -5,6 +5,8 @@ Commands and output for confirming that key artifacts exist and are readable on 
 2025 M4 MacBook Air running the latest macOS (Tahoe 26.3.1) with encrypted iCloud (Advanced Data Protection) -> uses entitlement-based sandboxing and Unified Logging.
 
 ## Verified that Bluetooth plist exists and is readable
+If it prints out a structured list of keys including DeviceCache or PairedDevices, the primary artifact is present and accessible without any special privileges. 
+
 ```
 defaults read /Library/Preferences/com.apple.Bluetooth
 {
@@ -24,6 +26,8 @@ defaults read /Library/Preferences/com.apple.Bluetooth
     move3PPLEMSToLegacyModeSerial = 1;
 }
 ```
+
+-> The plist is world-readable, but the DeviceCache key is missing.
 
 ## Checked the DeviceCache
 ```
@@ -46,9 +50,62 @@ plutil -p /Library/Preferences/com.apple.Bluetooth.plist
 }
 ```
 
-I hit the "SIP" (System Integrity Protection) wall. In recent versions of macOS, the sensitive pairing data—including the history of devices, connection timestamps, and encryption keys—has been moved from the world-readable /Library/Preferences folder to a protected database in /var/db/bluetooth/.
+I hit the "SIP" (System Integrity Protection) wall. In recent versions of macOS, the sensitive pairing data—including the history of devices, connection timestamps, and encryption keys—has been moved from the world-readable /Library/Preferences folder to a protected database.
 
-To get that data, you have to escalate your privileges and target the specific "com.apple.Bluetooth.plist" located in that protected directory.
+Tried various ways, including:
+```
+sudo ls -R /Library/Bluetooth
+
+ls: /Library/Bluetooth: Operation not permitted
+```
+
+Granting Full Disk Access:
+1. Go to System Settings > Privacy & Security > Full Disk Access.
+2. Click the + and add Terminal (found in /Applications/Utilities/).
+3. Quit and Restart Terminal.
+4. Try sudo ls -R /Library/Bluetooth again.
+
+```
+sudo ls -R /Library/Bluetooth
+Password:
+Library
+com.apple.MobileBluetooth.ledevices.other.db
+com.apple.MobileBluetooth.ledevices.other.db-shm
+com.apple.MobileBluetooth.ledevices.other.db-wal
+com.apple.MobileBluetooth.ledevices.paired.db
+com.apple.MobileBluetooth.ledevices.paired.db-shm
+com.apple.MobileBluetooth.ledevices.paired.db-wal
+
+/Library/Bluetooth/Library:
+Database	Preferences
+
+/Library/Bluetooth/Library/Database:
+
+/Library/Bluetooth/Library/Preferences:
+com.apple.MobileBluetooth.devices.plist
+```
+-> Apple has migrated Bluetooth data from .plist files into SQLite databases (.db).
+
+* com.apple.MobileBluetooth.ledevices.paired.db: This is the primary relational database for Low Energy (LE) paired devices.
+
+* The -wal (Write-Ahead Log) files: When a user deletes a device, the record is marked for deletion in the .db file, but the raw data often persists in the -wal file until a "checkpoint" occurs (which could be hours or days later).
+
+* com.apple.MobileBluetooth.devices.plist: Might contain the legacy "Classic" Bluetooth settings or high-level flags.
+
+
+Querying the DB to see if a deleted device is recoverable:
+```
+sudo sqlite3 /Library/Bluetooth/com.apple.MobileBluetooth.ledevices.paired.db "SELECT * FROM PairedDevices;"
+C75D39D2-F2D0-AAFA-9B74-0492414924F9|MX Master 3|2|Random E7:30:C5:F8:16:7F||46689698|1695|0|HasBuiltinServices,IsLEKeyboard,IsLEMouse,_HID_DEVICE_|
+6E2D470A-1562-BDDD-17DF-0991129205A3|MX Master 3|2|Random E7:30:C5:F8:16:82|Random E7:30:C5:F8:16:82|57869993|2643|0|APPEARANCE_MOUSE,HasBuiltinServices,IsLEKeyboard,IsLEMouse,LeIdentificationHashExist,_HID_DEVICE_|
+FA277342-7B6D-B1FF-E969-DED63443D02A|MX Master 3S|2|Random D8:B7:A1:05:97:CD|Random D8:B7:A1:05:97:CD|63305295|3066|0|APPEARANCE_MOUSE,HasBuiltinServices,IsLEMouse,LeIdentificationHashExist,_HID_DEVICE_|
+9FE80D29-46AD-82D1-4099-7E1429598D42|iPad|2|Public EC:73:79:8D:60:6A|Public EC:73:79:8D:60:6A|63312741|2643|1|PairedUsingRSA,PairingAttemptedUsingRSA|8E1F51FF-CEC0-4324-B14D-75D6D29662EF
+871F1D3F-DE3A-7966-2ECC-1C32AD6F199D|Kadri’s iPhone|2|Public A8:AB:B5:95:35:99|Public A8:AB:B5:95:35:99|63312772|3061|1|PairedUsingRSA,PairingAttemptedUsingRSA|80F24984-2353-4C86-8F95-C512F2A09A28
+```
+-> JYX-S55 not visible. But I wasn't able to make it visible after reconnecting either.
+
+
+
 
 ## Tested unified log access for Bluetooth events
 ```
