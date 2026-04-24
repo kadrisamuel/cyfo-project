@@ -59,7 +59,7 @@ Timestamp                       Thread     Type        Activity             PID 
 --------------------------------------------------------------------------------------------------------------------
 Log      - Default:     72,967, Info:            7,789, Debug:             0, Error:        473, Fault:          0
 Activity - Create:           0, Transition:          0, Actions:           0
-'''
+```
 
 # Did a quick "Forget Device" diff
 This is a miniature version of the actual experiment:
@@ -70,7 +70,7 @@ This is a miniature version of the actual experiment:
 4. Snapshot again: cp /Library/Preferences/com.apple.Bluetooth.plist ~/Desktop/bt_after.plist
 5. Diff them: diff <(plutil -p ~/Desktop/bt_before.plist) <(plutil -p ~/Desktop/bt_after.plist)
 
-'''
+```
 diff <(plutil -p ~/Desktop/bt_before.plist) <(plutil -p ~/Desktop/bt_after.plist)
 9,13d8
 <     "D4:23:B5:C4:89:A9" => {
@@ -85,7 +85,7 @@ diff <(plutil -p ~/Desktop/bt_before.plist) <(plutil -p ~/Desktop/bt_after.plist
 brew install fswatch
 ```
 
-'''
+```
 python3 -c "
 import subprocess
 print('Watching for changes... (Ctrl+C to stop)')
