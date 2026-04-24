@@ -1,4 +1,7 @@
-# Verified that Bluetooth plist exists and is readable
+# Pre-note tests
+Commands and output for confirming that key artifacts exist and are readable on my specific machine
+
+## Verified that Bluetooth plist exists and is readable
 ```
 defaults read /Library/Preferences/com.apple.Bluetooth
 {
@@ -19,7 +22,7 @@ defaults read /Library/Preferences/com.apple.Bluetooth
 }
 ```
 
-# Checked the DeviceCache
+## Checked the DeviceCache
 ```
 plutil -p /Library/Preferences/com.apple.Bluetooth.plist
 {
@@ -40,7 +43,7 @@ plutil -p /Library/Preferences/com.apple.Bluetooth.plist
 }
 ```
 
-# Tested unified log access for Bluetooth events
+## Tested unified log access for Bluetooth events
 ```
 log show --predicate 'subsystem == "com.apple.bluetooth"' --last 1h --info
 Filtering the log data using "subsystem == "com.apple.bluetooth""
@@ -61,7 +64,7 @@ Log      - Default:     72,967, Info:            7,789, Debug:             0, Er
 Activity - Create:           0, Transition:          0, Actions:           0
 ```
 
-# Did a quick "Forget Device" diff
+## Did a quick "Forget Device" diff
 This is a miniature version of the actual experiment:
 
 1. Pair any Bluetooth device (headphones, phone, anything)
@@ -80,7 +83,7 @@ diff <(plutil -p ~/Desktop/bt_before.plist) <(plutil -p ~/Desktop/bt_after.plist
 <     }
 ```
 
-# Tested FSEvents monitoring 
+## Tested FSEvents monitoring 
 Installed fswatch:
 ```
 brew install fswatch
