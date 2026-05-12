@@ -324,7 +324,7 @@ Switched strategy to monitor the macOS Unified Log (log stream) to capture the e
 Built a Python automation script using blueutil to trigger connections and parse the notifyDeviceConnected log entry.
 
 ##Test Run Snippet:
-'''
+```
 python3 -c "
 import subprocess
 import datetime
@@ -369,8 +369,8 @@ print('-' * 45)
 print(f'PHYSICAL TRIGGER TIME: {trigger_time.strftime(\"%Y-%m-%d %H:%M:%S.%f\")}')
 print(f'UNIFIED LOG TIMESTAMP: {log_time_str}')
 print('Note: Compare the microseconds between these two times to find your log drift!')
-
-'''
+"
+```
 
 ## Output
 === Module B: Unified Log Timestamp Drift ===
