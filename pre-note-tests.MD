@@ -254,7 +254,8 @@ MacBook Air running older macOS (Sonoma 14.8.1).
 ### Verified that Bluetooth plist exists and is readable
 Ran a check on the standard Bluetooth preference file.
 
-```bash
+bash
+```
 defaults read /Library/Preferences/com.apple.Bluetooth
 DeviceCache =     {
         "7c-04-d0-ad-be-d7" =         {
@@ -272,6 +273,7 @@ DeviceCache =     {
             Name = "YET-M1";
             ...
         };
+```
 -> Conclusion: Massive success. The DeviceCache is completely exposed. Timestamps, exact device names, battery levels, and MAC addresses are all readable without SIP interference.
 
 Did a "Forget Device" diff (Module C Validation)
@@ -280,11 +282,17 @@ Tested whether the macOS UI actually deletes residual data from the system cache
 Target Devices: YET-M1 and EWA Audio A103.
 
 Bash
+```
 cp /Library/Preferences/com.apple.Bluetooth.plist ~/Desktop/bt_before.plist
+```
 # -> Clicked "Forget Device" in macOS UI for both devices
+```
 cp /Library/Preferences/com.apple.Bluetooth.plist ~/Desktop/bt_after.plist
+```
+```
 diff <(plutil -p ~/Desktop/bt_before.plist) <(plutil -p ~/Desktop/bt_after.plist)
-Output:
+```
+##Output:
 
 Plaintext
 818,822d817
@@ -302,8 +310,10 @@ Attempted to measure disk write delay for Sony WF-1000XM5 earbuds (ac-80-0a-c1-4
 The Anomaly: The script hung forever waiting for a .plist update. Checked the .plist manually:
 
 Bash
+```
 defaults read /Library/Preferences/com.apple.Bluetooth | grep -A 10 -B 2 "ac-80-0a-c1-40-56"
-Output: (Empty. Returned nothing.)
+```
+##Output: (Empty. Returned nothing.)
 
 -> Conclusion: Modern BLE audio devices (like the Sony WF-1000XM5) bypass the legacy com.apple.Bluetooth.plist file entirely. macOS defers this data to memory caches (cfprefsd) or hidden SQLite databases. Legacy .plist monitoring is unreliable for modern BLE forensics.
 
@@ -313,9 +323,56 @@ Switched strategy to monitor the macOS Unified Log (log stream) to capture the e
 
 Built a Python automation script using blueutil to trigger connections and parse the notifyDeviceConnected log entry.
 
-Test Run Snippet:
+##Test Run Snippet:
+'''
+python3 -c "
+import subprocess
+import datetime
+import time
+import os
 
-Plaintext
+mac_address = 'ac-80-0a-c1-40-56'
+
+# Find blueutil path
+get_path = lambda t: next((p + t for p in ['/opt/homebrew/bin/', '/usr/local/bin/'] if os.path.exists(p + t)), t)
+blueutil_cmd = get_path('blueutil')
+
+print('\n=== Module B: Unified Log Timestamp Drift ===')
+print(f'Targeting Sony WF-1000XM5 (MAC: {mac_address})')
+
+# Start the log stream
+log_proc = subprocess.Popen(
+    ['log', 'stream', '--predicate', 'subsystem == \"com.apple.bluetooth\"'],
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    text=True
+)
+
+time.sleep(1)
+
+# Trigger connection
+trigger_time = datetime.datetime.now()
+print(f'[{trigger_time.strftime(\"%H:%M:%S.%f\")}] Triggering connection command...')
+subprocess.run([blueutil_cmd, '--connect', mac_address], capture_output=True)
+
+# Read logs
+print('Waiting for Unified Log entry...')
+line = next(l for l in log_proc.stdout if 'Connection completed' in l or 'Connected' in l or mac_address.upper() in l.upper())
+
+# Extract timestamps and terminate
+log_time_str = line.split()[0] + ' ' + line.split()[1]
+log_proc.terminate()
+
+# Output results
+print(f'\n[LOG CAPTURED EVENT]: {line.strip()}')
+print('-' * 45)
+print(f'PHYSICAL TRIGGER TIME: {trigger_time.strftime(\"%Y-%m-%d %H:%M:%S.%f\")}')
+print(f'UNIFIED LOG TIMESTAMP: {log_time_str}')
+print('Note: Compare the microseconds between these two times to find your log drift!')
+"
+'''
+
+##Output
 === Module B: Unified Log Timestamp Drift ===
 Targeting Sony WF-1000XM5 (MAC: ac-80-0a-c1-40-56)
 [14:22:40.226452] Triggering connection command...
@@ -340,4 +397,3 @@ Trial 5: 1.275 seconds
 Note: Logged one "Cold Start" anomaly of 26.033 seconds when the bluetooth daemon had to wake and negotiate setPreferredSniffParamsOnConnectedTouchIDHIDs before logging the connection.
 
 -> Conclusion: Unified logs successfully capture BLE connections that the .plist misses. The baseline forensic write delay (drift) averages 1.508 seconds. Forensic investigators must account for this systemic buffer when building timelines.
-```
