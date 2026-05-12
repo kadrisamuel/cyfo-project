@@ -246,3 +246,98 @@ Watching for changes... (Ctrl+C to stop)
 
 /Library/Preferences/com.apple.powerd.charging.plist IsFile AttributeModified
 ```
+## Saif's machine
+MacBook Air running older macOS (Sonoma 14.8.1).
+
+**Major Discovery:** Unlike macOS 15+ (Tahoe), Apple's System Integrity Protection (SIP) has **not** locked down the Bluetooth data on this version. The primary artifact is world-readable in plaintext without needing Full Disk Access.
+
+### Verified that Bluetooth plist exists and is readable
+Ran a check on the standard Bluetooth preference file.
+
+```bash
+defaults read /Library/Preferences/com.apple.Bluetooth
+DeviceCache =     {
+        "7c-04-d0-ad-be-d7" =         {
+            BatteryPercentLeft = 25;
+            ClassOfDevice = 2360344;
+            ClockOffset = 17536;
+            LastInquiryUpdate = "2019-11-04 2:18:48\U202fPM +0000";
+            LastServicesUpdate = "2019-11-06 5:12:07\U202fPM +0000";
+            Manufacturer = 76;
+            Name = "Saif\U2019s AirPods";
+            ...
+        };
+        "63-6c-0f-0b-fd-1f" =         {
+            LastNameUpdate = "2022-01-07 10:48:59\U202fAM +0000";
+            Name = "YET-M1";
+            ...
+        };
+-> Conclusion: Massive success. The DeviceCache is completely exposed. Timestamps, exact device names, battery levels, and MAC addresses are all readable without SIP interference.
+
+Did a "Forget Device" diff (Module C Validation)
+
+Tested whether the macOS UI actually deletes residual data from the system cache when a user clicks "Forget Device".
+Target Devices: YET-M1 and EWA Audio A103.
+
+Bash
+cp /Library/Preferences/com.apple.Bluetooth.plist ~/Desktop/bt_before.plist
+# -> Clicked "Forget Device" in macOS UI for both devices
+cp /Library/Preferences/com.apple.Bluetooth.plist ~/Desktop/bt_after.plist
+diff <(plutil -p ~/Desktop/bt_before.plist) <(plutil -p ~/Desktop/bt_after.plist)
+Output:
+
+Plaintext
+818,822d817
+<     "63:6C:0F:0B:FD:1F" => {
+<       "BSDName" => "YET-M1"
+<       "BTAddress" => {length = 6, bytes = 0x636c0f0bfd1f}
+<       "RFCOMMChannel" => 2
+<     }
+-> Conclusion: Ghost Artifacts confirmed. The UI lies to the user. The only code deleted was the superficial PersistentPorts routing. The full device footprints (MAC, name, history) remained entirely untouched inside the DeviceCache and PairedDevices array in the bt_after.plist file.
+
+Tested FSEvents monitoring & Discovered the BLE Split
+
+Attempted to measure disk write delay for Sony WF-1000XM5 earbuds (ac-80-0a-c1-40-56) by watching the .plist file using fswatch and blueutil.
+
+The Anomaly: The script hung forever waiting for a .plist update. Checked the .plist manually:
+
+Bash
+defaults read /Library/Preferences/com.apple.Bluetooth | grep -A 10 -B 2 "ac-80-0a-c1-40-56"
+Output: (Empty. Returned nothing.)
+
+-> Conclusion: Modern BLE audio devices (like the Sony WF-1000XM5) bypass the legacy com.apple.Bluetooth.plist file entirely. macOS defers this data to memory caches (cfprefsd) or hidden SQLite databases. Legacy .plist monitoring is unreliable for modern BLE forensics.
+
+Tested Unified Log access for Timestamp Drift (Module B Validation)
+
+Switched strategy to monitor the macOS Unified Log (log stream) to capture the exact write delay between a programmatic physical connection trigger and the system logging it.
+
+Built a Python automation script using blueutil to trigger connections and parse the notifyDeviceConnected log entry.
+
+Test Run Snippet:
+
+Plaintext
+=== Module B: Unified Log Timestamp Drift ===
+Targeting Sony WF-1000XM5 (MAC: ac-80-0a-c1-40-56)
+[14:22:40.226452] Triggering connection command...
+Waiting for Unified Log entry...
+
+[LOG CAPTURED EVENT]: 2026-05-12 14:22:42.052177+0200 ... bluetoothd: [com.apple.bluetooth:Server.App] UN: notifyDeviceConnected...
+---------------------------------------------
+PHYSICAL TRIGGER TIME: 2026-05-12 14:22:40.226452
+UNIFIED LOG TIMESTAMP: 2026-05-12 14:22:42.052177+0200
+Results across n=5 valid trials:
+
+Trial 1: 1.826 seconds
+
+Trial 2: 1.289 seconds
+
+Trial 3: 1.677 seconds
+
+Trial 4: 1.473 seconds
+
+Trial 5: 1.275 seconds
+
+Note: Logged one "Cold Start" anomaly of 26.033 seconds when the bluetooth daemon had to wake and negotiate setPreferredSniffParamsOnConnectedTouchIDHIDs before logging the connection.
+
+-> Conclusion: Unified logs successfully capture BLE connections that the .plist misses. The baseline forensic write delay (drift) averages 1.508 seconds. Forensic investigators must account for this systemic buffer when building timelines.
+```
