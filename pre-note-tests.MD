@@ -369,7 +369,7 @@ print('-' * 45)
 print(f'PHYSICAL TRIGGER TIME: {trigger_time.strftime(\"%Y-%m-%d %H:%M:%S.%f\")}')
 print(f'UNIFIED LOG TIMESTAMP: {log_time_str}')
 print('Note: Compare the microseconds between these two times to find your log drift!')
-"
+
 '''
 
 ## Output
