@@ -276,7 +276,7 @@ DeviceCache =     {
 ```
 -> Conclusion: Massive success. The DeviceCache is completely exposed. Timestamps, exact device names, battery levels, and MAC addresses are all readable without SIP interference.
 
-Did a "Forget Device" diff (Module C Validation)
+## Did a "Forget Device" diff (Module C Validation)
 
 Tested whether the macOS UI actually deletes residual data from the system cache when a user clicks "Forget Device".
 Target Devices: YET-M1 and EWA Audio A103.
@@ -333,14 +333,14 @@ import os
 
 mac_address = 'ac-80-0a-c1-40-56'
 
-# Find blueutil path
+//Find blueutil path
 get_path = lambda t: next((p + t for p in ['/opt/homebrew/bin/', '/usr/local/bin/'] if os.path.exists(p + t)), t)
 blueutil_cmd = get_path('blueutil')
 
 print('\n=== Module B: Unified Log Timestamp Drift ===')
 print(f'Targeting Sony WF-1000XM5 (MAC: {mac_address})')
 
-# Start the log stream
+//Start the log stream
 log_proc = subprocess.Popen(
     ['log', 'stream', '--predicate', 'subsystem == \"com.apple.bluetooth\"'],
     stdout=subprocess.PIPE,
@@ -350,20 +350,20 @@ log_proc = subprocess.Popen(
 
 time.sleep(1)
 
-# Trigger connection
+// Trigger connection
 trigger_time = datetime.datetime.now()
 print(f'[{trigger_time.strftime(\"%H:%M:%S.%f\")}] Triggering connection command...')
 subprocess.run([blueutil_cmd, '--connect', mac_address], capture_output=True)
 
-# Read logs
+// Read logs
 print('Waiting for Unified Log entry...')
 line = next(l for l in log_proc.stdout if 'Connection completed' in l or 'Connected' in l or mac_address.upper() in l.upper())
 
-# Extract timestamps and terminate
+// Extract timestamps and terminate
 log_time_str = line.split()[0] + ' ' + line.split()[1]
 log_proc.terminate()
 
-# Output results
+// Output results
 print(f'\n[LOG CAPTURED EVENT]: {line.strip()}')
 print('-' * 45)
 print(f'PHYSICAL TRIGGER TIME: {trigger_time.strftime(\"%Y-%m-%d %H:%M:%S.%f\")}')
@@ -372,7 +372,7 @@ print('Note: Compare the microseconds between these two times to find your log d
 "
 '''
 
-##Output
+## Output
 === Module B: Unified Log Timestamp Drift ===
 Targeting Sony WF-1000XM5 (MAC: ac-80-0a-c1-40-56)
 [14:22:40.226452] Triggering connection command...
