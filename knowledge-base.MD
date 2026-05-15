@@ -149,7 +149,7 @@ sudo strings /Library/Bluetooth/com.apple.MobileBluetooth.ledevices.paired.db-wa
 ```
 can be found [here](/files/ledevices.paired.db-wal.txt).
 
-#### Other BLE devices
+#### Nearby BLE devices
 `MobileBluetooth.ledevices.other.db` tracks BLE devices that have been seen/discovered but not paired (nearby sensors, beacons, fitness trackers, or any BLE device detected in the vicinity).
 
 Request to get schema for `MobileBluetooth.ledevices.other.db`;
@@ -171,7 +171,9 @@ sudo sqlite3 /Library/Bluetooth/com.apple.MobileBluetooth.ledevices.other.db "SE
 ```
 can be seen [here](/files/ledevices.other.db.txt). It is interesting to see. It lists my old Apple devices like a Watch, MacBook Pro etc and a bunch of other familiar and unfamiliar devices. Some entries are names but many are not.
 
-### Queries to find places that mention Bluetooth in the file system
+### Other..
+#### Queries to find places that mention Bluetooth in the file system
+This was tried out to see if there are more interesting places that could contain interesting data. 
 
 Basic query that finds the places we already know of:
 ```
