@@ -1,5 +1,22 @@
 # Knowledge Base
 
+## Table of Contents
+ 
+- [Locations of Bluetooth Data](#locations-of-bluetooth-data)
+  - [GUI](#gui)
+  - [plists — Bluetooth (regular)](#plists--bluetooth-regular)
+    - [Bluetooth.plist](#bluetoothplist)
+    - [MobileBluetooth.devices.plist](#mobilebluetoothdevicesplist)
+  - [/Library SQLite DBs — Bluetooth LE](#library-sqlite-dbs--bluetooth-le)
+    - [Paired BLE devices](#paired-ble-devices)
+    - [Nearby BLE devices](#nearby-ble-devices)
+  - [Unified Log System (ULS) — Rolling Logs](#unified-log-system-uls--rolling-logs)
+    - [Altering predicate to target connection/disconnection events (untested)](#altering-predicate-to-target-connectiondisconnection-events-untested)
+    - [Timezone](#timezone)
+  - [Other..](#other)
+    - [Queries to find places that mention Bluetooth in the file system](#queries-to-find-places-that-mention-bluetooth-in-the-file-system)
+---
+
 ## Locations of Bluetooth Data
 ### GUI
 Looking at known Bluetooth devices in mac `System Settings > Bluetooth`
