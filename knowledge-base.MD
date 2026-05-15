@@ -1,6 +1,10 @@
 # Knowledge Base
 
 ## Locations of Bluetooth Data
+### GUI
+Looking at known Bluetooth devices in mac `System Settings > Bluetooth`
+
+![Bluetooth Devices in GUI](/files/kadri-BT-devices-UI.png)
 
 ### plists
 #### Bluetooth.plist
@@ -160,6 +164,12 @@ CREATE INDEX UuidIndex ON OtherDevices(Uuid);
 CREATE TABLE CustomProperties (Uuid TEXT, JSON TEXT, UNIQUE(Uuid));
 CREATE INDEX CustomPropertiesIndex ON CustomProperties (Uuid);
 ```
+
+The output to see all other devices using:
+```
+sudo sqlite3 /Library/Bluetooth/com.apple.MobileBluetooth.ledevices.other.db "SELECT * FROM OtherDevices" > ledevices.other.db.txt
+```
+can be seen [here](/files/ledevices.other.db.txt). It is interesting to see. It lists my old Apple devices like a Watch, MacBook Pro etc and a bunch of other familiar and unfamiliar devices. Some entries are names but many are not.
 
 ### Queries to find places that mention Bluetooth in the file system
 
