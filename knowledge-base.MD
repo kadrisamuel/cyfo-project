@@ -171,6 +171,61 @@ sudo sqlite3 /Library/Bluetooth/com.apple.MobileBluetooth.ledevices.other.db "SE
 ```
 can be seen [here](/files/ledevices.other.db.txt). It is interesting to see. It lists my old Apple devices like a Watch, MacBook Pro etc and a bunch of other familiar and unfamiliar devices. Some entries are names but many are not.
 
+### Unified Log System (ULS) — Rolling Logs
+A rolling buffer of structured log entries written by the OS, introduced in macOS 10.12. The timestamps are generally reliable but not tamper-proof.
+
+Basic query to see realtime logs:
+```
+log stream --predicate 'subsystem == "com.apple.bluetooth"'
+```
+Sample snippet of its output from only a 10-second interval looks like [this](/files/ULS-stream.txt).
+
+Basic query to see saved logs:
+```
+log show --predicate 'subsystem == "com.apple.bluetooth"' --last 1h --info
+```
+
+#### Altering predicate to target connection/disconnection events (untested)
+
+Target connection/disconnection events specifically:
+```
+log stream --predicate 'subsystem == "com.apple.bluetooth" AND (eventMessage CONTAINS "connected" OR eventMessage CONTAINS "disconnected")' --level debug
+```
+Target the specific category that handles connections:
+```
+log stream --predicate 'subsystem == "com.apple.bluetooth" AND category == "connection"' --level debug
+```
+Combination of both:
+```
+log stream --predicate 'subsystem == "com.apple.bluetooth" AND category == "connection" AND (eventMessage CONTAINS "connected" OR eventMessage CONTAINS "disconnected")' --level debug
+```
+Other useful eventMessage keywords to try:
+|Keyword|Targets|
+|:----------|:--------|
+|"connected"|Device connections|
+|"disconnected"|Device disconnections|
+|"HID"|Human interface devices (keyboards, mice)|
+|"ACL"|Classic Bluetooth link connections|
+|"LE connect"|Bluetooth LE connections|
+|"link loss"|Unexpected disconnections|
+|"page timeout"|Failed connection attempts|
+
+
+
+#### Timezone
+By default `log show` displays timestamps in local time based on the system clock, but the underlying data is stored in UTC. For forensic purposes, always work in UTC to avoid ambiguity around DST transitions. 
+
+`log show` timezone be controlled like this:
+```
+# Force UTC output
+log show --predicate 'subsystem == "com.apple.bluetooth"' --timezone UTC
+
+# Force a specific timezone
+log show --predicate 'subsystem == "com.apple.bluetooth"' --timezone America/New_York
+```
+
+For `log stream` it may be necessary to set the TZ environment variable for the shell session before running `log stream` or export it for the whole session.
+
 ### Other..
 #### Queries to find places that mention Bluetooth in the file system
 This was tried out to see if there are more interesting places that could contain interesting data. 
