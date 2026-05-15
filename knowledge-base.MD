@@ -6,7 +6,7 @@ Looking at known Bluetooth devices in mac `System Settings > Bluetooth`
 
 ![Bluetooth Devices in GUI](/files/kadri-BT-devices-UI.png)
 
-### plists
+### plists — Bluetooth (regular)
 #### Bluetooth.plist
 Includes structured list of keys including DeviceCache or PairedDevices on older macOS versions. Newer (possibly ~Cataline and later) versions have less info, more of a settings/preferences file, but PersistentPorts can display currently connected devices.
 
@@ -82,7 +82,7 @@ Response snippet:
 ```
 See full output in [/files/MobileBluetooth.devices.plist.txt](/files/MobileBluetooth.devices.plist.txt)
 
-### /Library SQLite DBs
+### /Library SQLite DBs — Bluetooth LE
 Request for locations:
 ``` 
 ls -R /Library/Bluetooth
