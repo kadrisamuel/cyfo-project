@@ -78,7 +78,7 @@ Response snippet:
 ```
 See full output in [/files/MobileBluetooth.devices.plist.txt](/files/MobileBluetooth.devices.plist.txt)
 
-### /Library sqlite DBs
+### /Library SQLite DBs
 Request for locations:
 ``` 
 ls -R /Library/Bluetooth
@@ -103,6 +103,14 @@ com.apple.MobileBluetooth.devices.plist
 ```
 Based on the naming, it seems that SQLIte DBs contain BLE device data.
 
+**Extensions explained:**
+
+.db | The main database file
+
+.db-shm | Shared memory file — just a memory index
+
+.db-wal | Write-Ahead Log — temporarily holds changes before they're committed to the main .db file
+
 #### Paired BLE devices
 `MobileBluetooth.ledevices.paired.db` tracks BLE devices that have been paired.
 
@@ -118,6 +126,24 @@ CREATE INDEX UuidIndex ON PairedDevices(Uuid);
 CREATE TABLE CustomProperties (Uuid TEXT, JSON TEXT, UNIQUE(Uuid));
 CREATE INDEX CustomPropertiesIndex ON CustomProperties (Uuid);
 ```
+
+DB query and response:
+```
+sudo sqlite3 /Library/Bluetooth/com.apple.MobileBluetooth.ledevices.paired.db "SELECT * FROM PairedDevices;"
+Password:
+C75D39D2-F2D0-AAFA-9B74-0492414924F9|MX Master 3|2|Random E7:30:C5:F8:16:7F||46689698|1695|0|HasBuiltinServices,IsLEKeyboard,IsLEMouse,_HID_DEVICE_|
+6E2D470A-1562-BDDD-17DF-0991129205A3|MX Master 3|2|Random E7:30:C5:F8:16:82|Random E7:30:C5:F8:16:82|57869993|2643|0|APPEARANCE_MOUSE,HasBuiltinServices,IsLEKeyboard,IsLEMouse,LeIdentificationHashExist,_HID_DEVICE_|
+9FE80D29-46AD-82D1-4099-7E1429598D42|iPad|2|Public EC:73:79:8D:60:6A|Public EC:73:79:8D:60:6A|63972174|2643|1|PairedUsingRSA,PairingAttemptedUsingRSA|8E1F51FF-CEC0-4324-B14D-75D6D29662EF
+CE1A473D-EC38-5B5F-0D35-8347D4E06FAD|MX Anywhere 2S|2|Random FF:1C:A9:E3:78:B5|Random FF:1C:A9:E3:78:B5|64222109|2844|0|APPEARANCE_MOUSE,HasBuiltinServices,IsLEKeyboard,IsLEMouse,_HID_DEVICE_|
+FA277342-7B6D-B1FF-E969-DED63443D02A|MX Master 3S|2|Random D8:B7:A1:05:97:CD|Random D8:B7:A1:05:97:CD|64377236|2610|0|APPEARANCE_MOUSE,HasBuiltinServices,IsLEMouse,LeIdentificationHashExist,_HID_DEVICE_|
+871F1D3F-DE3A-7966-2ECC-1C32AD6F199D|Kadri’s iPhone|2|Public A8:AB:B5:95:35:99|Public A8:AB:B5:95:35:99|64434051|2891|1|PairedUsingRSA,PairingAttemptedUsingRSA|80F24984-2353-4C86-8F95-C512F2A09A28
+```
+
+The output for reading .db-wal file using:
+```
+sudo strings /Library/Bluetooth/com.apple.MobileBluetooth.ledevices.paired.db-wal > ledevices.paired.db-wal.txt
+```
+can be found [here](/files/ledevices.paired.db-wal.txt).
 
 #### Other BLE devices
 `MobileBluetooth.ledevices.other.db` tracks BLE devices that have been seen/discovered but not paired (nearby sensors, beacons, fitness trackers, or any BLE device detected in the vicinity).
