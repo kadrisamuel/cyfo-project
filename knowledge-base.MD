@@ -101,8 +101,41 @@ Database	Preferences
 /Library/Bluetooth/Library/Preferences:
 com.apple.MobileBluetooth.devices.plist
 ```
+Based on the naming, it seems that SQLIte DBs contain BLE device data.
 
-### Queries to find places that mention bluetooth
+#### Paired BLE devices
+`MobileBluetooth.ledevices.paired.db` tracks BLE devices that have been paired.
+
+Request to get schema for `MobileBluetooth.ledevices.paired.db`:
+```
+sudo sqlite3 /Library/Bluetooth/com.apple.MobileBluetooth.ledevices.paired.db ".schema"      
+```
+Response:
+```               
+CREATE TABLE _SqliteDatabaseProperties(key TEXT, value TEXT, UNIQUE(key));
+CREATE TABLE PairedDevices(Uuid TEXT, Name TEXT, NameOrigin INT, Address TEXT, ResolvedAddress TEXT, LastSeenTime INT, LastConnectionTime INT, GATTServiceChangeConfig INT, Tags TEXT, iCloudIdentifier TEXT);
+CREATE INDEX UuidIndex ON PairedDevices(Uuid);
+CREATE TABLE CustomProperties (Uuid TEXT, JSON TEXT, UNIQUE(Uuid));
+CREATE INDEX CustomPropertiesIndex ON CustomProperties (Uuid);
+```
+
+#### Other BLE devices
+`MobileBluetooth.ledevices.other.db` tracks BLE devices that have been seen/discovered but not paired (nearby sensors, beacons, fitness trackers, or any BLE device detected in the vicinity).
+
+Request to get schema for `MobileBluetooth.ledevices.other.db`;
+```
+sudo sqlite3 /Library/Bluetooth/com.apple.MobileBluetooth.ledevices.other.db ".schema" 
+```
+Response:
+```         
+CREATE TABLE _SqliteDatabaseProperties(key TEXT, value TEXT, UNIQUE(key));
+CREATE TABLE OtherDevices(Uuid TEXT, Name TEXT, NameOrigin INT, Address TEXT, ResolvedAddress TEXT, LastSeenTime INT, LastConnectionTime INT, GATTServiceChangeConfig INT, Tags TEXT, iCloudIdentifier TEXT);
+CREATE INDEX UuidIndex ON OtherDevices(Uuid);
+CREATE TABLE CustomProperties (Uuid TEXT, JSON TEXT, UNIQUE(Uuid));
+CREATE INDEX CustomPropertiesIndex ON CustomProperties (Uuid);
+```
+
+### Queries to find places that mention Bluetooth in the file system
 
 Basic query that finds the places we already know of:
 ```
