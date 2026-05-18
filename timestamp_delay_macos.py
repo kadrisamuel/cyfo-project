@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 bt_timestamp_auto_macos.py
-
+====================================
 Bluetooth Timestamp Triangulation Tool — macOS Automated Edition
 Stockholm University — CYFO Assignment
 
@@ -57,18 +57,25 @@ import json
 import re
 from datetime import datetime, timezone, timedelta
 
-# CONFIG
+# ─── CONFIG ───────────────────────────────────────────────────────────────────
 
 PLIST_PATH       = os.path.expanduser("~/Library/Preferences/com.apple.Bluetooth.plist")
 BT_LOG_PREDICATE = 'subsystem == "com.apple.bluetooth"'
 
-# Keywords indicating Bluetooth power-off events in Unified Log
+# Keywords indicating Bluetooth power events in Unified Log
+# Broad on purpose — exact wording varies by macOS version
 POWER_OFF_KEYWORDS = ["power off", "powered off", "turning off",
                       "bluetooth off", "disabled", "power state off",
-                      "controller power off"]
+                      "controller power off", "poweroff", "coex",
+                      "notification", "status"]
 POWER_ON_KEYWORDS  = ["power on", "powered on", "turning on",
                       "bluetooth on", "enabled", "power state on",
-                      "controller power on"]
+                      "controller power on", "poweron", "coex",
+                      "notification", "status"]
+
+# Accept the FIRST any BT log entry after T1 as T2 if no keyword matches.
+# macOS often redacts content with <private> — the timestamp is still valid.
+ACCEPT_ANY_BT_ENTRY_AS_FALLBACK = True
 
 CSV_OUTPUT    = "bt_timestamps_auto_macos.csv"
 POLL_INTERVAL = 0.05    # 50ms polling
@@ -85,7 +92,7 @@ POST_RESTORE_PAUSE = 3
 
 COCOA_EPOCH = datetime(2001, 1, 1, tzinfo=timezone.utc)
 
-# HELPERS 
+# ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 def now_utc() -> datetime:
     return datetime.now(timezone.utc)
@@ -101,7 +108,7 @@ def delta_ms(a: datetime, b: datetime) -> float:
 def cocoa_to_utc(ts: float) -> datetime:
     return COCOA_EPOCH + timedelta(seconds=float(ts))
 
-# BLUEUTIL
+# ─── BLUEUTIL ─────────────────────────────────────────────────────────────────
 
 def check_blueutil() -> bool:
     """Return True if blueutil is available."""
@@ -127,7 +134,7 @@ def bt_is_on() -> bool:
                        capture_output=True, text=True, timeout=5)
     return r.stdout.strip() == "1"
 
-# PLIST HELPERS
+# ─── PLIST HELPERS ────────────────────────────────────────────────────────────
 
 def get_plist_mtime() -> datetime | None:
     try:
@@ -176,7 +183,7 @@ def read_plist_last_seen() -> tuple:
     except Exception:
         return None, None
 
-# UNIFIED LOG HELPERS
+# ─── UNIFIED LOG HELPERS ──────────────────────────────────────────────────────
 
 def parse_log_timestamp(line: str) -> datetime | None:
     try:
@@ -197,37 +204,47 @@ def classify_log_line(line: str) -> str | None:
         return "power_off"
     if any(k in lower for k in POWER_ON_KEYWORDS):
         return "power_on"
-    # Fallback — any BT activity after our T1 is relevant
-    if "bluetooth" in lower or "bthd" in lower:
+    if ACCEPT_ANY_BT_ENTRY_AS_FALLBACK:
         return "bt_activity"
     return None
 
 def query_unified_log_once(since: datetime) -> dict | None:
-    """Single log show query for Bluetooth events after `since`."""
+    """
+    Single log show query for Bluetooth events after `since`.
+    Uses a 30-second search window to keep queries fast —
+    avoids scanning the entire log archive which causes timeouts.
+    """
     since_str = since.strftime("%Y-%m-%d %H:%M:%S")
+    # End window: only look 30s ahead of T1 — more than enough for any event
+    end_dt    = since + timedelta(seconds=30)
+    end_str   = end_dt.strftime("%Y-%m-%d %H:%M:%S")
     try:
         r = subprocess.run(
             ["log", "show",
              "--predicate", BT_LOG_PREDICATE,
              "--info",
              "--start", since_str,
+             "--end",   end_str,
              "--style", "compact"],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, timeout=30  # increased from 10s
         )
         lines = [l for l in r.stdout.splitlines()
                  if l.strip() and not l.startswith("Filtering")]
         for line in lines:
-            ev_type = classify_log_line(line)
-            if ev_type is None:
-                continue
             T2 = parse_log_timestamp(line)
             if T2 is None or T2 <= since:
+                continue
+            ev_type = classify_log_line(line)
+            if ev_type is None:
                 continue
             return {
                 "T2_log_time": T2,
                 "label":       f"BT_{ev_type.upper()} (Unified Log)",
                 "description": line.strip()[:120],
             }
+    except subprocess.TimeoutExpired:
+        print("  [!] Log query timed out — T2 will be empty for this trial.")
+        print("      Plist timestamps (T3/T4) are still valid.")
     except Exception as e:
         print(f"  [!] Log query error: {e}")
     return None
@@ -279,7 +296,7 @@ class PlistWatcher:
             except Exception:
                 pass
 
-# CLOCK SKEW
+# ─── CLOCK SKEW ───────────────────────────────────────────────────────────────
 
 def describe_skew(skew_ms: float) -> str:
     abs_s     = abs(skew_ms) / 1000
@@ -296,7 +313,7 @@ def describe_skew(skew_ms: float) -> str:
         return (f"Unified Log {direction} system clock by "
                 f"{abs_s:.1f}s | check system time settings")
 
-# ─── CSV ────
+# ─── CSV ──────────────────────────────────────────────────────────────────────
 
 CSV_HEADERS = [
     "trial",
@@ -364,7 +381,7 @@ def run_trial(trial: int, plist_watcher: PlistWatcher,
     log_done_event    = threading.Event()
 
     def log_thread_fn():
-        deadline = time.time() + 30
+        deadline = time.time() + 45  # 30s query window + 15s buffer
         while time.time() < deadline:
             result = query_unified_log_once(T1)
             if result:
@@ -375,11 +392,11 @@ def run_trial(trial: int, plist_watcher: PlistWatcher,
 
     threading.Thread(target=log_thread_fn, daemon=True).start()
 
-    changed  = plist_watcher.wait_for_change(timeout=30)
+    changed  = plist_watcher.wait_for_change(timeout=45)
     T3       = plist_watcher.change_time
     T4_mtime = plist_watcher.change_mtime
 
-    log_done_event.wait(timeout=30)
+    log_done_event.wait(timeout=45)
     log_result = log_result_holder[0]
 
     # ── Step 3: restore Bluetooth ──
@@ -463,7 +480,7 @@ def run_trial(trial: int, plist_watcher: PlistWatcher,
         "notes":                      notes,
     }
 
-# MAIN 
+# ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 def main():
     print("=" * 62)
