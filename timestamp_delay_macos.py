@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 """
 bt_timestamp_compare_macos.py
-====================================
-Bluetooth Timestamp Triangulation Tool — macOS Edition
-Stockholm University — CYFO Assignment
 
-No audio, no reaction time calibration.
+Bluetooth Timestamp Triangulation Tool — macOS Edition
 T1 is recorded at the end of a countdown — act immediately after.
 
 Timestamps captured per trial:
@@ -41,7 +38,7 @@ import json
 import re
 from datetime import datetime, timezone, timedelta
 
-# ─── CONFIG ───────────────────────────────────────────────────────────────────
+# CONFIG
 
 PLIST_PATH       = os.path.expanduser("~/Library/Preferences/com.apple.Bluetooth.plist")
 BT_LOG_PREDICATE = 'subsystem == "com.apple.bluetooth"'
@@ -61,7 +58,7 @@ PRE_T1_COUNTDOWN_SECONDS = 5
 
 COCOA_EPOCH = datetime(2001, 1, 1, tzinfo=timezone.utc)
 
-# ─── HELPERS ──────────────────────────────────────────────────────────────────
+# HELPERS
 
 def now_utc() -> datetime:
     return datetime.now(timezone.utc)
@@ -77,7 +74,7 @@ def delta_ms(a: datetime, b: datetime) -> float:
 def cocoa_to_utc(ts: float) -> datetime:
     return COCOA_EPOCH + timedelta(seconds=float(ts))
 
-# ─── COUNTDOWN ────────────────────────────────────────────────────────────────
+# COUNTDOWN
 
 def countdown_and_mark(seconds: int) -> datetime:
     """
@@ -95,7 +92,7 @@ def countdown_and_mark(seconds: int) -> datetime:
     print("  ACT NOW!                        ", flush=True)
     return T1
 
-# ─── PLIST HELPERS ────────────────────────────────────────────────────────────
+# PLIST HELPERS
 
 def get_plist_mtime() -> datetime | None:
     try:
@@ -143,7 +140,7 @@ def read_plist_last_seen() -> tuple:
     except Exception:
         return None, None
 
-# ─── UNIFIED LOG HELPERS ──────────────────────────────────────────────────────
+# UNIFIED LOG HELPERS
 
 def parse_log_timestamp(line: str) -> datetime | None:
     try:
@@ -242,7 +239,7 @@ class PlistWatcher:
             except Exception:
                 pass
 
-# ─── CLOCK SKEW ───────────────────────────────────────────────────────────────
+# CLOCK SKEW
 
 def describe_skew(skew_ms: float) -> str:
     abs_s     = abs(skew_ms) / 1000
@@ -284,7 +281,7 @@ def write_csv_row(row: dict):
             w.writeheader()
         w.writerow(row)
 
-# ─── MAIN ─────────────────────────────────────────────────────────────────────
+# MAIN
 
 def main():
     print("=" * 62)
