@@ -33,7 +33,8 @@ To get these numbers, I wrote a Python script that automatically connected the *
 
 ## Graph Analysis
 
-Make sure to look at `Forensic_Drift_Figure.png` alongside this data. Here is how to explain the plot so everyone understands what is happening:
+![Forensic Write Delay: Physical BLE Trigger vs. macOS Unified Log Commit](Forensic_Drift_Figure.png)
+
 
 * **The Blue Dots (Measured Log Drift):** Each dot represents one of the 20 connection trials. If you look at the spread, the dots bounce around quite a bit. The fastest log write took about **0.87 seconds** (Trial 6), and the slowest took about **1.63 seconds** (Trial 13). 
 * **The Red Dashed Line (Mean Drift):** This is the overall average delay across all 20 trials. It settles at exactly **1.188 seconds**.
