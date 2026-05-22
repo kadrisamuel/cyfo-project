@@ -3,9 +3,10 @@
 ## Apple Devices
 | Device Name | Type of Device | Owner | Other Info | Bluetooth Type | MAC Address |
 |:----------|:--------|:---------|:---------|:---------|:---------|
+| Macbook Air 2018 | Laptop | Saif | macOS 14.8.1 |. |. |
+| Macbook Air 2025 | Laptop | Kadri | macOS 26.5 |. | 2C:CA:16:3C:44:E4 (BT controller) |
 | iPad Air | Tablet | Kadri | iPadOS 26.2.1 |  | EC:73:79:8D:60:6A ? |
 | iPhone 13 | Phone | Kadri | iOS 26.4.2 |  | A8:AB:B5:95:35:99 |
-| Macbook Air 2018 | Laptop | Saif | MacOs 14.8.1 |  |  |
 | AirPods | Headphones | Kadri |  |  | F8:4D:89:4C:79:D7 |
 | AirPods Pro | Headphones | Kadri |  |  | 30:7A:D2:42:CE:05 |
 | Apple Keyboard | Keyboard | Kadri | | | 10:94:BB:BF:ED:8C |
