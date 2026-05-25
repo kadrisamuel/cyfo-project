@@ -14,6 +14,9 @@
 * Connection state:
     * Paired (or has been paired in the past) 
     * New (Never paired)
+* Bluetooth type:
+    * BLE
+    * Classic Bluetooth
 
 ## Variables to measure
 
@@ -37,6 +40,9 @@ Record
 * BLE database
 * unified logs
 * ...
+Analyze
+* Diff all recorded files
+* Carve SQLite freelist
 
 ## Artifact targets
 
@@ -49,6 +55,6 @@ Record
 * Unified logs (primary for timing)
 
 User-level:
-* ~/Library/Preferences/ByHost/com.apple.Bluetooth.*
+* ~/Library/Preferences/ByHost/com.apple.Bluetooth.*.plist
 iCloud-related:
 * ~/Library/Preferences/MobileMeAccounts.plist
