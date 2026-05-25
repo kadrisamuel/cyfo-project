@@ -10,6 +10,7 @@
 | AirPods | Headphones | Kadri |  |  | F8:4D:89:4C:79:D7 |
 | AirPods Pro | Headphones | Kadri |  |  | 30:7A:D2:42:CE:05 |
 | Apple Keyboard | Keyboard | Kadri | | | 10:94:BB:BF:ED:8C |
+| Apple Pencil |. | Kadri |. |. |. |
 
 ## Known Manufacturer/Commom Devices
 | Device Name | Manufacturer | Type of Device | Owner | Other Info | Bluetooth Type | MAC Address |
@@ -17,6 +18,7 @@
 | MX Master 3S | Logitech | Mouse | Kadri |    |    | D8:B7:A1:05:97:CD |
 | MX Anywhere 2S | Logitech | Mouse | Thanos |  |  | E7:30:C5:F8:16:82 |
 | Sony Xm5    |  Sony   |  Earbuds   | Saif    |    |    |    |
+| Garmin Forerunner 165 | Watch | Kadri |. |. |. |
 
 ## Random Smaller Manufacturer Devices
 | Device Name | Manufacturer | Type of Device | Owner | Other Info |Bluetooth Type | MAC Address |
