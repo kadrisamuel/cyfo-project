@@ -1,2 +1,6 @@
 # General
 .DS_Store
+# Python env
+bin/
+lib/
+pyvenv.cfg
