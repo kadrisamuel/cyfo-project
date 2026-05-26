@@ -1,6 +1,13 @@
 # General
 .DS_Store
+
 # Python env
 bin/
 lib/
 pyvenv.cfg
+
+# Generated files
+RQ1-code/backup_pre_reset*
+RQ1-code/pre_test_baseline_clean*
+backup_pre_reset*
+pre_test_baseline_clean*
