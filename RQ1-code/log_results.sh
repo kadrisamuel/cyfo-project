@@ -31,7 +31,13 @@ if [ ! -f "$CSV" ]; then
 fi
 
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S")
-FREELIST=$(cat "$OUTDIR/freelist_count.txt" 2>/dev/null || echo "0")
+
+FREELIST=0
+for f in "$OUTDIR"/*_freelist.txt; do
+  [ -f "$f" ] || continue
+  val=$(cat "$f" 2>/dev/null)
+  FREELIST=$((FREELIST + val))
+done
 
 # Convert system plist once for all MACs
 PLIST="$OUTDIR/com.apple.Bluetooth.plist"
@@ -75,11 +81,15 @@ for mac in "${MACS[@]}"; do
   done
   echo "    found_byhost=$FOUND_BYHOST"
 
-  # BLE DB dump
+  # BLE DB dumps — search all dumped databases
   FOUND_BLE="N/A"
-  if [ -f "$OUTDIR/ble_db_dump.sql" ]; then
+  BLE_DUMPS=("$OUTDIR"/*_dump.sql)
+  if [ -f "${BLE_DUMPS[0]}" ]; then
     FOUND_BLE=0
-    grep -qi "$mac_lc\|$mac_dashes" "$OUTDIR/ble_db_dump.sql" && FOUND_BLE=1
+    for dump in "${BLE_DUMPS[@]}"; do
+      [ -f "$dump" ] || continue
+      grep -qi "$mac_lc\|$mac_dashes" "$dump" && FOUND_BLE=1 && break
+    done
   fi
   echo "    found_ble_db=$FOUND_BLE"
 
