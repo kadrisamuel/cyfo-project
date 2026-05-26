@@ -34,6 +34,8 @@ sudo rm -f /Library/Preferences/com.apple.Bluetooth.plist
 
 # User-level artifacts
 rm -f ~/Library/Preferences/ByHost/com.apple.Bluetooth.*
+rm -f ~/Library/Preferences/com.apple.bluetooth.plist
+rm -f ~/Library/Preferences/com.apple.bluetoothuserd.plist
 
 # Restart daemon
 sudo launchctl start com.apple.bluetoothd

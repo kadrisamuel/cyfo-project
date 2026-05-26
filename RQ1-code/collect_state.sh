@@ -19,11 +19,14 @@ date -u +"%Y-%m-%d %H:%M:%S UTC" > "$OUT_DIR/timestamp.txt"
 system_profiler SPBluetoothDataType > "$OUT_DIR/system_bluetooth.txt"
 
 # Core artifacts
-sudo cp /Library/Preferences/com.apple.Bluetooth.plist "$OUT_DIR/" 2>/dev/null
-sudo cp -R /Library/Bluetooth "$OUT_DIR/" 2>/dev/null
+sudo cp /Library/Preferences/com.apple.Bluetooth.plist "$OUT_DIR/" || echo "[!] FAILED: plist copy"
+sudo cp -R /Library/Bluetooth "$OUT_DIR/" || echo "[!] FAILED: Bluetooth dir copy"
+sudo chown -R $(whoami) "$OUT_DIR/Bluetooth"
 
 # User artifacts
-cp ~/Library/Preferences/ByHost/com.apple.Bluetooth.* "$OUT_DIR/" 2>/dev/null
+cp ~/Library/Preferences/ByHost/com.apple.Bluetooth.* "$OUT_DIR/" 
+cp ~/Library/Preferences/com.apple.bluetooth.plist* "$OUT_DIR/" 
+cp ~/Library/Preferences/com.apple.bluetoothuserd.plist* "$OUT_DIR/" 
 
 # iCloud account state
 defaults read ~/Library/Preferences/MobileMeAccounts.plist > "$OUT_DIR/MobileMeAccounts.plist.txt" 2>/dev/null
