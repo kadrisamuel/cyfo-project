@@ -34,16 +34,27 @@ cp ~/Library/Preferences/com.apple.bluetoothuserd.plist* "$OUT_DIR/user/"
 # iCloud account state
 defaults read ~/Library/Preferences/MobileMeAccounts.plist > "$OUT_DIR/MobileMeAccounts.plist.txt" 2>/dev/null
 
-# SQLite dump — include WAL/SHM for consistency
-DB="$OUT_DIR/Bluetooth/com.apple.MobileBluetooth.ledevices.paired.db"
-sudo cp /Library/Bluetooth/com.apple.MobileBluetooth.ledevices.paired.db* "$OUT_DIR/Bluetooth/" 2>/dev/null
+# SQLite — dump all BT databases
+sudo find /Library/Bluetooth -name "*.db" 2>/dev/null | while read -r src_db; do
+  db_name=$(basename "$src_db")
+  # Copy db + wal + shm
+  sudo cp "${src_db}"* "$OUT_DIR/Bluetooth/" 2>/dev/null
+  sudo chown $(whoami) "$OUT_DIR/Bluetooth/${db_name}"* 2>/dev/null
 
-if [ -f "$DB" ]; then
-  sqlite3 "$DB" .dump > "$OUT_DIR/ble_db_dump.sql"
-  sqlite3 "$DB" "PRAGMA freelist_count;" > "$OUT_DIR/freelist_count.txt"
-else
-  echo "[!] WARNING: BLE database not found"
-fi
+  local_db="$OUT_DIR/Bluetooth/$db_name"
+  dump_file="$OUT_DIR/${db_name%.db}_dump.sql"
+  freelist_file="$OUT_DIR/${db_name%.db}_freelist.txt"
+
+  if [ -f "$local_db" ]; then
+    # Checkpoint WAL before dumping
+    sqlite3 "$local_db" "PRAGMA wal_checkpoint(FULL);" 2>/dev/null
+    sqlite3 "$local_db" .dump > "$OUT_DIR/ble_db_dump.sql"
+    sqlite3 "$local_db" "PRAGMA freelist_count;" > "$OUT_DIR/freelist_count.txt"
+    echo "[+] Dumped: $db_name"
+  else
+    echo "[!] WARNING: BLE database not found"
+  fi
+done
 
 # Unified logs (last 5 min to cover reset window)
 log show --last 5m --predicate 'subsystem == "com.apple.bluetooth"' > "$OUT_DIR/bluetooth.log"
