@@ -3,6 +3,7 @@
 
 OUT_DIR="./pre_test_baseline_clean_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$OUT_DIR"
+mkdir -p "$OUT_DIR/user"
 
 echo "[*] Collecting baseline system state into $OUT_DIR"
 
@@ -21,12 +22,14 @@ system_profiler SPBluetoothDataType > "$OUT_DIR/system_bluetooth.txt"
 # Core artifacts
 sudo cp /Library/Preferences/com.apple.Bluetooth.plist "$OUT_DIR/" || echo "[!] FAILED: plist copy"
 sudo cp -R /Library/Bluetooth "$OUT_DIR/" || echo "[!] FAILED: Bluetooth dir copy"
-sudo chown -R $(whoami) "$OUT_DIR/Bluetooth"
+sudo cp /Library/Bluetooth/Library/Preferences/com.apple.MobileBluetooth.devices.plist "$OUT_DIR/" || echo "[!] FAILED: MobileBluetooth plist copy"
+
+sudo chown -R $(whoami) "$OUT_DIR"
 
 # User artifacts
-cp ~/Library/Preferences/ByHost/com.apple.Bluetooth.* "$OUT_DIR/" 
-cp ~/Library/Preferences/com.apple.bluetooth.plist* "$OUT_DIR/" 
-cp ~/Library/Preferences/com.apple.bluetoothuserd.plist* "$OUT_DIR/" 
+cp ~/Library/Preferences/ByHost/com.apple.Bluetooth.* "$OUT_DIR/user/" 
+cp ~/Library/Preferences/com.apple.bluetooth.plist* "$OUT_DIR/user/" 
+cp ~/Library/Preferences/com.apple.bluetoothuserd.plist* "$OUT_DIR/user/" 
 
 # iCloud account state
 defaults read ~/Library/Preferences/MobileMeAccounts.plist > "$OUT_DIR/MobileMeAccounts.plist.txt" 2>/dev/null
@@ -44,6 +47,8 @@ fi
 
 # Unified logs (last 5 min to cover reset window)
 log show --last 5m --predicate 'subsystem == "com.apple.bluetooth"' > "$OUT_DIR/bluetooth.log"
+
+sudo chown -R $(whoami) "$OUT_DIR"
 
 # Integrity checksums
 find "$OUT_DIR" -type f ! -name "checksums.sha256" -exec shasum -a 256 {} + > "$OUT_DIR/checksums.sha256"
