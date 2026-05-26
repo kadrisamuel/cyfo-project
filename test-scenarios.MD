@@ -20,8 +20,8 @@ Use correct EXP# and MAC address for each experiment
 ### Step 1: Clean baseline
 ```
 ./reset_bt.sh
-./collect_state.sh baseline_clean
-./log_results.sh baseline_clean EXP1 baseline "BLE" a0-78-17-57-9e-3f
+./collect_state.sh
+./log_results.sh pre_test_baseline_clean_timestamp EXP1 baseline mouse F8:4D:89:4C:79:D7
 ```
 
 ### Step 2: Pair and connect device manually
