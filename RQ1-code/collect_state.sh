@@ -48,11 +48,9 @@ sudo find /Library/Bluetooth -name "*.db" 2>/dev/null | while read -r src_db; do
   if [ -f "$local_db" ]; then
     # Checkpoint WAL before dumping
     sqlite3 "$local_db" "PRAGMA wal_checkpoint(FULL);" 2>/dev/null
-    sqlite3 "$local_db" .dump > "$OUT_DIR/ble_db_dump.sql"
-    sqlite3 "$local_db" "PRAGMA freelist_count;" > "$OUT_DIR/freelist_count.txt"
+    sqlite3 "$local_db" .dump > "$dump_file"
+    sqlite3 "$local_db" "PRAGMA freelist_count;" > "$freelist_file"
     echo "[+] Dumped: $db_name"
-  else
-    echo "[!] WARNING: BLE database not found"
   fi
 done
 
@@ -64,8 +62,4 @@ sudo chown -R $(whoami) "$OUT_DIR"
 # Integrity checksums
 find "$OUT_DIR" -type f ! -name "checksums.sha256" -exec shasum -a 256 {} + > "$OUT_DIR/checksums.sha256"
 
-if [ ! -f "$OUT_DIR/ble_db_dump.sql" ]; then
-  echo "[!] WARNING: BLE database dump failed"
-else
-  echo "[+] Collection complete: $OUT_DIR"
-fi
+echo "[+] Collection complete: $OUT_DIR"
