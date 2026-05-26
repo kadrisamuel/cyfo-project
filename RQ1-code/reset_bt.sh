@@ -24,7 +24,6 @@ else
 fi
 
 # Backup before deletion (just in case)
-mkdir -p ./backup_pre_reset
 sudo cp -R /Library/Bluetooth "$BACKUP_DIR/" 2>/dev/null
 sudo cp /Library/Preferences/com.apple.Bluetooth.plist "$BACKUP_DIR/" 2>/dev/null
 cp ~/Library/Preferences/ByHost/com.apple.Bluetooth.* "$BACKUP_DIR/" 2>/dev/null
