@@ -40,4 +40,11 @@ rm -f ~/Library/Preferences/com.apple.bluetoothuserd.plist
 # Restart daemon
 sudo launchctl start com.apple.bluetoothd
 
+# Restore ownership of backup directory to the original user who invoked sudo
+if [ -n "$SUDO_USER" ]; then
+  chown -R "$SUDO_USER" "$BACKUP_DIR" 2>/dev/null
+else
+  chown -R $(whoami) "$BACKUP_DIR" 2>/dev/null
+fi
+
 echo "[+] Bluetooth reset complete. Backup at: $BACKUP_DIR"
