@@ -1,0 +1,14 @@
+# RQ3 Artifact Hashes — 2026-05-27
+
+## com.apple.MobileBluetooth.devices.plist
+
+| State | SHA-256 | Timestamp (UTC) |
+|---|---|---|
+| Pre-forget | a2181c76bc07d4b0166126c6c6c7be031b35c7db4f3586bc886076d2ed69a8d7 | 2026-05-27 |
+| Post-forget | 12e967613027d9529b6d82edff2353acc78edb3741587554509f6026ca0f6e79 | 2026-05-27 |
+
+## Notes
+- Pre-forget hash captured before Forget Device on F8:4D:89:4C:79:D7 (Kadri's AirPods)
+- Post-forget hash captured immediately after Forget Device operation
+- Hash difference confirms plist was modified by the Forget Device operation
+- Full plist XML content captured in session — see RQ3_Session_Notes.docx
