@@ -21,6 +21,15 @@ Use correct EXP# and MAC address for each experiment
 
 **`log_results.sh` usage**: `./log_results.sh <dir> <experiment_id> <phase> <device_type> <mac1> ...`
 
+## Important arguments
+
+* `<dir>` — directory to store the collected data, corresponds to experiment phase (baseline_clean, after_pair, after_forget) and may have a timestamp suffix added by `collect_state.sh`.
+* `<experiment_id>` — identifier for the experiment (e.g., EXP1)
+* `<phase>` — phase of the experiment (baseline_clean, after_pair, after_forget)
+* `<device_type>` — type of device (mouse, keyboard, headphones, speaker, etc.)
+* `<mac1> ...` — one or more MAC addresses of the device
+
+
 ### Step 1: Clean baseline
 ```
 ./reset_bt.sh
@@ -33,7 +42,7 @@ Use correct EXP# and MAC address for each experiment
 ### Step 3: Collect data
 ```
 ./collect_state.sh after_pair
-./log_results.sh after_pair_timestamp EXP1 paired "BLE" a0-78-17-57-9e-3f
+./log_results.sh after_pair_timestamp EXP1 paired mouse F8:4D:89:4C:79:D7
 ```
 
 ### Step 4: Forget device
@@ -45,7 +54,7 @@ Use correct EXP# and MAC address for each experiment
 # run carving first
 ./carve_ble.sh after_forget/Library/Bluetooth/com.apple.MobileBluetooth.ledevices.paired.db
 
-./log_results.sh after_forget EXP1 after_forget "BLE" a0-78-17-57-9e-3f
+./log_results.sh after_forget_timestamp EXP1 after_forget mouse F8:4D:89:4C:79:D7
 ```
 
 ## Variables to control
