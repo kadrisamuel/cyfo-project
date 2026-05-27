@@ -1,7 +1,16 @@
 #!/bin/bash
 # collect_state.sh — Step 2: Baseline + state acquisition
 
-OUT_DIR="./pre_test_baseline_clean_$(date +%Y%m%d_%H%M%S)"
+# Get prefix from command-line argument, or prompt user if not provided
+PREFIX="$1"
+if [ -z "$PREFIX" ]; then
+  read -p "Enter directory prefix [baseline_clean / after_pair / after_forget]: " PREFIX
+  if [ -z "$PREFIX" ]; then
+    PREFIX="collect_state_unknown"
+  fi
+fi
+
+OUT_DIR="./${PREFIX}_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$OUT_DIR"
 mkdir -p "$OUT_DIR/user"
 
