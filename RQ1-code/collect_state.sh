@@ -13,6 +13,7 @@ fi
 OUT_DIR="./${PREFIX}_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$OUT_DIR"
 mkdir -p "$OUT_DIR/user"
+mkdir -p "$OUT_DIR/Bluetooth"
 
 echo "[*] Collecting baseline system state into $OUT_DIR"
 
@@ -31,7 +32,16 @@ system_profiler SPBluetoothDataType > "$OUT_DIR/system_bluetooth.txt"
 # Core artifacts
 sudo cp /Library/Preferences/com.apple.Bluetooth.plist "$OUT_DIR/" || echo "[!] FAILED: plist copy"
 sudo cp -R /Library/Bluetooth "$OUT_DIR/" || echo "[!] FAILED: Bluetooth dir copy"
-sudo cp /Library/Bluetooth/Library/Preferences/com.apple.MobileBluetooth.devices.plist "$OUT_DIR/" || echo "[!] FAILED: MobileBluetooth plist copy"
+sudo cp /Library/Bluetooth/Library/Preferences/com.apple.MobileBluetooth.devices.plist "$OUT_DIR/" 2>/dev/null
+sudo cp /Library/Bluetooth/com.apple.MobileBluetooth.devices.plist "$OUT_DIR/" 2>/dev/null
+
+# Lower-level daemon storage (/private/var/db/blued/)
+sudo cp -R /private/var/db/blued "$OUT_DIR/" 2>/dev/null || echo "[!] FAILED: blued copy"
+
+# Legacy system logs (filtering system.log for bluetooth)
+if [ -f /private/var/log/system.log ]; then
+  grep -i "bluetooth\|blue" /private/var/log/system.log > "$OUT_DIR/legacy_system_bluetooth.log" 2>/dev/null
+fi
 
 sudo chown -R $(whoami) "$OUT_DIR"
 
@@ -42,6 +52,7 @@ cp ~/Library/Preferences/com.apple.bluetoothuserd.plist* "$OUT_DIR/user/"
 
 # iCloud account state
 defaults read ~/Library/Preferences/MobileMeAccounts.plist > "$OUT_DIR/MobileMeAccounts.plist.txt" 2>/dev/null
+cp ~/Library/Preferences/MobileMeAccounts.plist "$OUT_DIR/user/" 2>/dev/null
 
 # SQLite — dump all BT databases
 sudo find /Library/Bluetooth -name "*.db" 2>/dev/null | while read -r src_db; do
