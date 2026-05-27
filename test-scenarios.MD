@@ -6,10 +6,10 @@ Run multiple scenarios:
 * Forget immediately after pairing
 * Forget after multiple connections
 * Forget after reboot
+* Forget and reboot
 * Forget while device is disconnected
-* What to measure
 
-For each artifact, does the device entry:
+Measure for each artifact, does the device entry:
 * disappear completely?
 * remain partially (e.g., MAC address)?
 * remain in another file but not UI?
@@ -17,11 +17,15 @@ For each artifact, does the device entry:
 ## How to run?
 Use correct EXP# and MAC address for each experiment
 
+**`collect_state.sh` usage**: `./collect_state.sh <dir>`
+
+**`log_results.sh` usage**: `./log_results.sh <dir> <experiment_id> <phase> <device_type> <mac1> ...`
+
 ### Step 1: Clean baseline
 ```
 ./reset_bt.sh
-./collect_state.sh
-./log_results.sh pre_test_baseline_clean_timestamp EXP1 baseline mouse F8:4D:89:4C:79:D7
+./collect_state.sh baseline_clean
+./log_results.sh baseline_clean_timestamp EXP1 baseline mouse F8:4D:89:4C:79:D7
 ```
 
 ### Step 2: Pair and connect device manually
@@ -29,7 +33,7 @@ Use correct EXP# and MAC address for each experiment
 ### Step 3: Collect data
 ```
 ./collect_state.sh after_pair
-./log_results.sh after_pair EXP1 paired "BLE" a0-78-17-57-9e-3f
+./log_results.sh after_pair_timestamp EXP1 paired "BLE" a0-78-17-57-9e-3f
 ```
 
 ### Step 4: Forget device
