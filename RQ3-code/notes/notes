@@ -1,0 +1,89 @@
+# RQ3 Methodology Notes
+
+## Research Question
+
+**RQ3:** Does iCloud sync propagate Bluetooth pairing data across devices after a Forget Device operation on macOS?
+
+---
+
+## Test Environment
+
+| Parameter | Value |
+|---|---|
+| macOS Version | macOS 26.4.1 (Build 25E253) |
+| Machine | Mac mini |
+| Access Method | RealVNC (GUI) + SSH (terminal) |
+| Apple ID | Fresh account, newly created for experiment |
+| Session Date | 2026-05-27 |
+
+---
+
+## Procedure
+
+### Phase 1 — Baseline Collection
+1. Sign fresh Apple ID into Mac
+2. Confirm iCloud account active via `defaults read MobileMeAccounts`
+3. Run `01_baseline_collection.sh` across all known artifact locations
+4. Hash all baseline files for chain of custody
+
+### Phase 2 — Artifact Discovery
+1. Run `02_artifact_discovery.sh` to locate primary artifact store
+2. On macOS 26, standard locations (`~/Library/Bluetooth/`, `/Library/Preferences/com.apple.Bluetooth.plist`) were empty
+3. Primary artifact discovered at `/Library/Bluetooth/Library/Preferences/com.apple.MobileBluetooth.devices.plist`
+
+### Phase 3 — Forget Device Experiment
+1. Hash primary artifact pre-forget
+2. Open System Settings → Bluetooth via RealVNC
+3. Perform Forget Device on target device
+4. Immediately run `03_post_forget_snapshot.sh`
+5. Monitor SyncedPreferences for iCloud propagation
+
+### Phase 4 — CloudKit Analysis
+1. Run `04_cloudkit_log_analysis.sh`
+2. Identify active CloudKit containers for Bluetooth data
+3. Assess authentication status of Apple ID against containers
+
+---
+
+## Known Limitations
+
+### SIP Protection on macOS 26
+`/Library/Bluetooth/` is protected by System Integrity Protection (SIP) even from `sudo`. Direct hashing and reading of `com.apple.MobileBluetooth.devices.plist` requires either:
+- SIP disabled (requires reboot into Recovery Mode — not feasible on remote machine)
+- Entitlement-bearing process (e.g. `defaults`, `plutil`, `PlistBuddy` with appropriate entitlements)
+
+In this session, `sudo plutil` and `sudo defaults read` succeeded for reading, but `sudo shasum` and `sudo ls` on the directory were blocked. The pre- and post-forget hashes were successfully captured via `sudo shasum` immediately after the operations.
+
+### Fresh Apple ID Cannot Complete CloudKit Sync
+All three Bluetooth CloudKit containers (`com.apple.bluetooth`, `com.apple.bluetooth.services`, `com.apple.securedBluetooth`) returned persona `(null)` for the fresh Apple ID. The `audioaccessoryd` sync agent entered a crash loop (new PID every ~10 seconds) attempting and failing the CloudKit subscription handshake.
+
+**Implication:** The RQ3 core question — whether Forget Device propagates via iCloud — cannot be fully answered with a fresh Apple ID. An established Apple ID with prior device history is required to complete the CloudKit authentication.
+
+### No Physical Device for Pairing
+The experiment was conducted entirely remotely. The Forget Device operation was performed on pre-existing paired devices (AirPods belonging to a previous user) rather than a freshly paired device. This is a methodological limitation for the pairing side of RQ3, though the Forget Device behaviour and CloudKit infrastructure findings remain valid.
+
+### Remote Access Constraint
+The machine was accessed exclusively via RealVNC and SSH. This prevented:
+- Physical device pairing
+- SIP disablement (reboot risk)
+- Recovery Mode access
+
+---
+
+## Next Session Requirements
+
+To complete RQ3, the following are needed:
+
+1. **Established Apple ID** with at least one other Apple device already associated
+2. **Physical access** to the Mac (or a second Mac with local access) to pair a fresh Bluetooth device
+3. **Second device** signed into the same Apple ID to observe the receiving side of sync
+4. Optionally: **SIP disabled** for complete artifact access
+
+### Specific Experiment to Run
+1. Sign established Apple ID into test Mac
+2. Wait for `audioaccessoryd` to successfully complete CloudKit subscription (persona no longer null)
+3. Pair a fresh Bluetooth device
+4. Hash `com.apple.MobileBluetooth.devices.plist` pre- and post-pairing
+5. Perform Forget Device
+6. Observe whether the tombstone MAC address appears on the second device via CloudKit sync
+7. Check `com.apple.securedBluetooth` container specifically for IRK hash propagation
