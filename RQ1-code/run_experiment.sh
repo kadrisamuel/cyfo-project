@@ -28,6 +28,40 @@ else
   STATE="NONE"
 fi
 
+# Command-line abort handling
+if [[ "$1" == "--abort" ]] || [[ "$1" == "-a" ]] || [[ "$1" == "--cancel" ]]; then
+  if [ -f "$STATE_FILE" ]; then
+    source "$STATE_FILE"
+    rm -f "$STATE_FILE"
+    echo -e "${GREEN}[+] Aborted active experiment '$EXP_ID' and cleared state file.${NC}"
+  else
+    echo -e "${YELLOW}[*] No active experiment state to abort.${NC}"
+  fi
+  exit 0
+fi
+
+# Interactive check to abort mid-run
+if [ "$STATE" != "NONE" ]; then
+  print_header
+  echo -e "${YELLOW}[!] An active experiment is currently in progress:${NC}"
+  echo -e "    ID:            ${BOLD}$EXP_ID${NC}"
+  echo -e "    Device:        $FRIENDLY_NAME ($DEVICE_TYPE)"
+  echo -e "    MAC:           $MAC_ADDRESS"
+  echo -e "    Current Phase: $STATE"
+  echo ""
+  echo -e "What would you like to do?"
+  echo -e "  [1] Continue active experiment (Default)"
+  echo -e "  [2] Abort/Cancel active experiment"
+  echo ""
+  read -p "Select option [1-2, default 1]: " OPTION
+  if [ "$OPTION" == "2" ]; then
+    echo -e "${RED}[*] Aborting active experiment...${NC}"
+    rm -f "$STATE_FILE"
+    echo -e "${GREEN}[+] Active experiment state has been cleared successfully. You can now start a new one!${NC}"
+    exit 0
+  fi
+fi
+
 case "$STATE" in
   "NONE")
     print_header
