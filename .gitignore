@@ -12,3 +12,8 @@ RQ1-code/pre_test_baseline_clean*
 backup_pre_reset*
 pre_test_baseline_clean*
 results.csv
+recovered.sql
+raw_strings.txt
+baseline_clean*
+after_pair*
+after_forget*
