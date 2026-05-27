@@ -71,17 +71,20 @@ The device MAC address persists as a key. A forensic examiner would find the dev
 
 ---
 
-### 3. Previous Owner Identity Persists Across Account Changes
+markdown### 3. Previous Owner Identity Recoverable from Bluetooth Artifacts
 
-The `UserNameKey` field in paired AirPods entries retained the previous user's name after a fresh Apple ID was signed in:
+The `UserNameKey` field in AirPods pairing records retains the name given
+to the device by its original owner. Pre-existing entries in
+`com.apple.MobileBluetooth.devices.plist` survived an account transition —
+remaining intact after a fresh Apple ID was signed into the machine:
 
 ```
 UserNameKey = "Kadri's AirPods Pro"
 UserNameKey = "Kadri's AirPods"
 ```
 
-PII from a prior user is not cleared from local Bluetooth artifacts when a new Apple ID is signed in.
-
+A forensic examiner with read access to this file can recover the identity
+of a previous user without any account credentials.
 ---
 
 ### 4. IRK Hashes Present in HID Device Records
