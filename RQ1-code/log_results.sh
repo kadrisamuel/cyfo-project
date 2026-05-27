@@ -68,7 +68,7 @@ for mac in "${MACS[@]}"; do
   FOUND_PLIST=0
   for xml in "$PLIST_XML" "$DEVICES_XML"; do
     [ -f "$xml" ] || continue
-    grep -qi "$mac_lc\|$mac_dashes" "$xml" && FOUND_PLIST=1 && break
+    grep -qiE "$mac_lc|$mac_dashes" "$xml" && FOUND_PLIST=1 && break
   done
   echo "    found_plist=$FOUND_PLIST"
 
@@ -77,7 +77,7 @@ for mac in "${MACS[@]}"; do
   for f in "$OUTDIR/user/com.apple.Bluetooth."* "$OUTDIR/user/com.apple.bluetooth.plist" "$OUTDIR/user/com.apple.bluetoothuserd.plist"; do
     [ -f "$f" ] || continue
     plutil -convert xml1 -o /tmp/bt_user_check.xml "$f" 2>/dev/null
-    grep -qi "$mac_lc\|$mac_dashes" /tmp/bt_user_check.xml && FOUND_BYHOST=1 && break
+    grep -qiE "$mac_lc|$mac_dashes" /tmp/bt_user_check.xml && FOUND_BYHOST=1 && break
   done
   echo "    found_byhost=$FOUND_BYHOST"
 
@@ -88,7 +88,7 @@ for mac in "${MACS[@]}"; do
     FOUND_BLE=0
     for dump in "${BLE_DUMPS[@]}"; do
       [ -f "$dump" ] || continue
-      grep -qi "$mac_lc\|$mac_dashes" "$dump" && FOUND_BLE=1 && break
+      grep -qiE "$mac_lc|$mac_dashes" "$dump" && FOUND_BLE=1 && break
     done
   fi
   echo "    found_ble_db=$FOUND_BLE"
@@ -97,7 +97,7 @@ for mac in "${MACS[@]}"; do
   FOUND_STRINGS="N/A"
   if [ -f "$OUTDIR/raw_strings.txt" ]; then
     FOUND_STRINGS=0
-    grep -qi "$mac_lc\|$mac_dashes" "$OUTDIR/raw_strings.txt" && FOUND_STRINGS=1
+    grep -qiE "$mac_lc|$mac_dashes" "$OUTDIR/raw_strings.txt" && FOUND_STRINGS=1
   fi
   echo "    found_strings=$FOUND_STRINGS"
 
@@ -105,7 +105,7 @@ for mac in "${MACS[@]}"; do
   RECOVERED="N/A"
   if [ -f "$OUTDIR/recovered.sql" ]; then
     RECOVERED=0
-    grep -qi "$mac_lc\|$mac_dashes" "$OUTDIR/recovered.sql" && RECOVERED=1
+    grep -qiE "$mac_lc|$mac_dashes" "$OUTDIR/recovered.sql" && RECOVERED=1
   fi
   echo "    recovered=$RECOVERED"
 
