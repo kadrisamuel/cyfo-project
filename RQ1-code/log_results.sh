@@ -36,7 +36,7 @@ echo "[*] Environment: macOS=$MACOS_VERSION arch=$ARCH model=$HW_MODEL"
 
 # Create CSV header if not exists
 if [ ! -f "$CSV" ]; then
-  echo "experiment_id,phase,timestamp,mac,device_type,macos_version,arch,hw_model,found_plist,found_byhost,found_ble_db,found_strings,freelist_count,recovered_in_sqlite,notes" > "$CSV"
+  echo "experiment_id,phase,timestamp,mac,device_type,macos_version,arch,hw_model,found_plist,found_byhost,found_ble_db,found_strings,freelist_count,recovered_in_sqlite,carved_records_count,notes,found_mac_filesystem,found_mac_after_forget" > "$CSV"
 fi
 
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S")
@@ -102,7 +102,7 @@ for mac in "${MACS[@]}"; do
   fi
   echo "    found_ble_db=$FOUND_BLE"
 
-  # Raw strings
+  # MAC was found in raw strings T/F
   FOUND_STRINGS="N/A"
   if [ -f "$OUTDIR/raw_strings.txt" ]; then
     FOUND_STRINGS=0
@@ -110,7 +110,7 @@ for mac in "${MACS[@]}"; do
   fi
   echo "    found_strings=$FOUND_STRINGS"
 
-  # Recovered SQL
+  # MAC was recovered in SQLite T/F
   RECOVERED="N/A"
   if [ -f "$OUTDIR/recovered.sql" ]; then
     RECOVERED=0
@@ -118,10 +118,29 @@ for mac in "${MACS[@]}"; do
   fi
   echo "    recovered=$RECOVERED"
 
-  NOTES="ok"
-  echo "$EXPERIMENT_ID,$PHASE,$TIMESTAMP,$mac_lc,$DEVICE_TYPE,$MACOS_VERSION,$ARCH,$HW_MODEL,$FOUND_PLIST,$FOUND_BYHOST,$FOUND_BLE,$FOUND_STRINGS,$FREELIST,$RECOVERED,$NOTES" >> "$CSV"
-  echo "    -> row written to $CSV"
 
+  # Count of times MAC was carved (in SQLite)
+  if [ -f "$OUTDIR/recovered.sql" ]; then
+    CARVED_COUNT=$(grep -qiE "$mac_lc|$mac_dashes" "$OUTDIR/recovered.sql" | wc -l)
+  else
+    CARVED_COUNT="N/A"
+  fi
+  echo "    carved_records_count=$CARVED_COUNT"
+
+  NOTES="ok"
+
+  # Number of times MAC was found in FileSystem
+  MAC_FS_COUNT=$(awk -F': ' '/^TOTAL_MATCHES_FOUND:/ {print $2}' "$OUTDIR/mac_scan_results.txt" 2>/dev/null)
+  MAC_FS_COUNT=${MAC_FS_COUNT:-0}
+
+  # Found after forget
+  FOUND_AFTER_FORGET=0
+  if [ "$PHASE" == "after_forget" ] && [ "$MAC_FS_COUNT" -gt 0 ]; then
+    FOUND_AFTER_FORGET=1
+  fi
+  echo "    found_after_forget=$FOUND_AFTER_FORGET"
+
+  echo "$EXPERIMENT_ID,$PHASE,$TIMESTAMP,$mac_lc,$DEVICE_TYPE,$MACOS_VERSION,$ARCH,$HW_MODEL,$FOUND_PLIST,$FOUND_BYHOST,$FOUND_BLE,$FOUND_STRINGS,$FREELIST,$RECOVERED,$CARVED_COUNT,$NOTES,$MAC_FS_COUNT,$FOUND_AFTER_FORGET" >> "$CSV"
 done
 
 echo "[+] Logged results to $CSV"
