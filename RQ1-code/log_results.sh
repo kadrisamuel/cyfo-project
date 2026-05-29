@@ -36,7 +36,7 @@ echo "[*] Environment: macOS=$MACOS_VERSION arch=$ARCH model=$HW_MODEL"
 
 # Create CSV header if not exists
 if [ ! -f "$CSV" ]; then
-  echo "experiment_id,phase,timestamp,mac,device_type,macos_version,arch,hw_model,found_plist,found_byhost,found_ble_db,found_strings,freelist_count,recovered_in_sqlite,carved_records_count,notes,found_mac_filesystem,found_mac_after_forget" > "$CSV"
+  echo "experiment_id,phase,timestamp,mac,device_type,macos_version,arch,hw_model,found_plist,found_byhost,found_ble_db,found_strings,freelist_count,recovered_in_sqlite,carved_records_count,notes,found_mac_filesystem_count,found_mac_after_forget" > "$CSV"
 fi
 
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S")
@@ -130,8 +130,9 @@ for mac in "${MACS[@]}"; do
   NOTES="ok"
 
   # Number of times MAC was found in FileSystem
+  MAC_FS_COUNT=0
   MAC_FS_COUNT=$(awk -F': ' '/^TOTAL_MATCHES_FOUND:/ {print $2}' "$OUTDIR/mac_scan_results.txt" 2>/dev/null)
-  MAC_FS_COUNT=${MAC_FS_COUNT:-0}
+
 
   # Found after forget
   FOUND_AFTER_FORGET=0
