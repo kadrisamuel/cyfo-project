@@ -25,9 +25,18 @@ if [ ${#MACS[@]} -eq 0 ]; then
   exit 1
 fi
 
+# --- Environment Capture ---
+MACOS_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "unknown")
+ARCH=$(uname -m 2>/dev/null || echo "unknown")
+HW_MODEL=$(system_profiler SPHardwareDataType 2>/dev/null \
+  | awk -F': ' '/Model Identifier/{print $2; exit}')
+HW_MODEL="${HW_MODEL:-unknown}"
+
+echo "[*] Environment: macOS=$MACOS_VERSION arch=$ARCH model=$HW_MODEL"
+
 # Create CSV header if not exists
 if [ ! -f "$CSV" ]; then
-  echo "experiment_id,phase,timestamp,mac,device_type,found_plist,found_byhost,found_ble_db,found_strings,freelist_count,recovered_in_sqlite,notes" > "$CSV"
+  echo "experiment_id,phase,timestamp,mac,device_type,macos_version,arch,hw_model,found_plist,found_byhost,found_ble_db,found_strings,freelist_count,recovered_in_sqlite,notes" > "$CSV"
 fi
 
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S")
@@ -110,7 +119,7 @@ for mac in "${MACS[@]}"; do
   echo "    recovered=$RECOVERED"
 
   NOTES="ok"
-  echo "$EXPERIMENT_ID,$PHASE,$TIMESTAMP,$mac_lc,$DEVICE_TYPE,$FOUND_PLIST,$FOUND_BYHOST,$FOUND_BLE,$FOUND_STRINGS,$FREELIST,$RECOVERED,$NOTES" >> "$CSV"
+  echo "$EXPERIMENT_ID,$PHASE,$TIMESTAMP,$mac_lc,$DEVICE_TYPE,$MACOS_VERSION,$ARCH,$HW_MODEL,$FOUND_PLIST,$FOUND_BYHOST,$FOUND_BLE,$FOUND_STRINGS,$FREELIST,$RECOVERED,$NOTES" >> "$CSV"
   echo "    -> row written to $CSV"
 
 done
