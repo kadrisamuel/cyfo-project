@@ -25,6 +25,9 @@ echo "[*] Scanning directory '$INPUT_DIR' for MAC address artifacts..."
 echo "[*] Detailed logs will be written to: $LOG_FILE"
 echo "" > "$LOG_FILE"
 
+# Initialize global match counter
+TOTAL_MATCHES=0
+
 for mac in "${MACS[@]}"; do
   # Standardize casing for casing check
   mac_lc=$(echo "$mac" | tr '[:upper:]' '[:lower:]')
@@ -52,8 +55,11 @@ for mac in "${MACS[@]}"; do
   while read -r file; do
     [ -z "$file" ] && continue
     
-    # Get total match count in this file
-    count=$(grep -ci -e "$mac" -e "$mac_dash_lc" "$file" 2>/dev/null)
+    # Get total match count in this file (using all variations for accuracy)
+    count=$(grep -ci -e "$mac_lc" -e "$mac_uc" -e "$mac_dash_lc" -e "$mac_dash_uc" "$file" 2>/dev/null)
+    
+    # Add to the running global total
+    TOTAL_MATCHES=$((TOTAL_MATCHES + count))
     
     # Write to log file
     echo "----------------------------------------------------------------------" >> "$LOG_FILE"
@@ -79,5 +85,9 @@ for mac in "${MACS[@]}"; do
 
   done <<< "$matched_files"
 done
+
+# Write a distinct, parsable footer at the bottom of the log file
+echo "======================================================================" >> "$LOG_FILE"
+echo "TOTAL_MATCHES_FOUND: $TOTAL_MATCHES" >> "$LOG_FILE"
 
 echo "[+] Scan complete! Full results saved in: $LOG_FILE"
