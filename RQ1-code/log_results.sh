@@ -121,7 +121,7 @@ for mac in "${MACS[@]}"; do
 
   # Count of times MAC was carved (in SQLite)
   if [ -f "$OUTDIR/recovered.sql" ]; then
-    CARVED_COUNT=$(grep -qiE "$mac_lc|$mac_dashes" "$OUTDIR/recovered.sql" | wc -l)
+    CARVED_COUNT=$(grep -ciE "$mac_lc|$mac_dashes" "$OUTDIR/recovered.sql" | wc -l)
   else
     CARVED_COUNT="N/A"
   fi
@@ -131,9 +131,7 @@ for mac in "${MACS[@]}"; do
 
   # Number of times MAC was found in FileSystem
   MAC_FS_COUNT=$(awk -F': ' '/^TOTAL_MATCHES_FOUND:/ {print $2}' "$OUTDIR/mac_scan_results.txt" 2>/dev/null)
-
-  MAC_FS_COUNT=${MAC_FS_COUNT:-0} 
-
+  MAC_FS_COUNT=${MAC_FS_COUNT:-0}
 
   # Found after forget
   FOUND_AFTER_FORGET=0
@@ -142,7 +140,8 @@ for mac in "${MACS[@]}"; do
   fi
   echo "    found_after_forget=$FOUND_AFTER_FORGET"
 
-  echo "$EXPERIMENT_ID,$PHASE,$TIMESTAMP,$mac_lc,$DEVICE_TYPE,$MACOS_VERSION,$ARCH,$HW_MODEL,$FOUND_PLIST,$FOUND_BYHOST,$FOUND_BLE,$FOUND_STRINGS,$FREELIST,$RECOVERED,$CARVED_COUNT,$NOTES,$MAC_FS_COUNT,$FOUND_AFTER_FORGET" >> "$CSV"
+# Wrap EVERY SINGLE VARIABLE in quotes to enforce the 18-column structure
+  echo "\"$EXPERIMENT_ID\",\"$PHASE\",\"$TIMESTAMP\",\"$mac_lc\",\"$DEVICE_TYPE\",\"$MACOS_VERSION\",\"$ARCH\",\"$HW_MODEL\",\"$FOUND_PLIST\",\"$FOUND_BYHOST\",\"$FOUND_BLE\",\"$FOUND_STRINGS\",\"$FREELIST\",\"$RECOVERED\",\"$CARVED_COUNT\",\"$NOTES\",\"$MAC_FS_COUNT\",\"$FOUND_AFTER_FORGET\"" >> "$CSV"
 done
 
 echo "[+] Logged results to $CSV"
