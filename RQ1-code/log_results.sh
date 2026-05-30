@@ -130,8 +130,9 @@ for mac in "${MACS[@]}"; do
   NOTES="ok"
 
   # Number of times MAC was found in FileSystem
-  MAC_FS_COUNT=0
   MAC_FS_COUNT=$(awk -F': ' '/^TOTAL_MATCHES_FOUND:/ {print $2}' "$OUTDIR/mac_scan_results.txt" 2>/dev/null)
+
+  MAC_FS_COUNT=${MAC_FS_COUNT:-0} 
 
 
   # Found after forget
