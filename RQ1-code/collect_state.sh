@@ -10,7 +10,7 @@ if [ -z "$PREFIX" ]; then
   fi
 fi
 
-OUT_DIR="./${PREFIX}_$(date +%Y%m%d_%H%M%S)"
+OUT_DIR="./${PREFIX}_$(date -u +%Y%m%d_%H%M%S)"
 mkdir -p "$OUT_DIR"
 mkdir -p "$OUT_DIR/user"
 mkdir -p "$OUT_DIR/Bluetooth"
