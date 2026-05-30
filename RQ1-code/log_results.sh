@@ -39,7 +39,16 @@ if [ ! -f "$CSV" ]; then
   echo "experiment_id,phase,timestamp,mac,device_type,macos_version,arch,hw_model,found_plist,found_byhost,found_ble_db,found_strings,freelist_count,recovered_in_sqlite,carved_records_count,notes,found_mac_filesystem_count,found_mac_after_forget" > "$CSV"
 fi
 
-TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S")
+TIMESTAMP_FILE="$OUTDIR/timestamp.txt"
+if [ -f "$TIMESTAMP_FILE" ]; then
+  # Reads the very first line of the file
+  TIMESTAMP=$(head -n 1 "$TIMESTAMP_FILE")
+  # Optional: Strip trailing " UTC" if you want it to match your previous format exactly
+  TIMESTAMP=${TIMESTAMP% UTC}
+else
+  echo "[!] Warning: $TIMESTAMP_FILE not found. Falling back to system clock."
+  TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S")
+fi
 
 FREELIST=0
 for f in "$OUTDIR"/*_freelist.txt; do
